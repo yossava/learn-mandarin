@@ -7,7 +7,6 @@ let order = [];
 let pos = 0;
 let srs = {};
 let apiMode = false;
-const audio = new Audio();
 
 const srsKey = () => `srs:${deckId}`;
 function loadSrs() {
@@ -84,6 +83,10 @@ function render() {
   $("#back").classList.add("hidden");
   if (!card) return;
 
+  const player = $("#player");
+  player.src = `${DATA}/${deckId}/${card.video || card.audio}`;
+  player.play().catch(() => {});
+
   $("#hanzi").textContent = card.chinese;
   $("#pinyin").textContent = card.pinyin;
   $("#translation").textContent = card.translation;
@@ -99,14 +102,12 @@ function render() {
 
   const learned = cards.filter((c) => box(c.id) >= 2).length;
   $("#progress").textContent = `${pos + 1}/${cards.length} · learned ${learned}`;
-  playAudio();
 }
 
-function playAudio() {
-  const card = current();
-  if (!card) return;
-  audio.src = `${DATA}/${deckId}/${card.audio}`;
-  audio.play().catch(() => {});
+function playClip() {
+  const player = $("#player");
+  player.currentTime = 0;
+  player.play().catch(() => {});
 }
 
 function flip() { $("#back").classList.toggle("hidden"); }
@@ -183,7 +184,7 @@ function pollJob(id) {
 }
 
 // ---------- wiring ----------
-$("#play").onclick = playAudio;
+$("#play").onclick = playClip;
 $("#flip").onclick = flip;
 $("#again").onclick = () => grade(false);
 $("#known").onclick = () => grade(true);
@@ -192,7 +193,7 @@ $("#add").addEventListener("submit", addLesson);
 
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT") return; // don't hijack the URL box
-  if (e.key === " ") { e.preventDefault(); playAudio(); }
+  if (e.key === " ") { e.preventDefault(); playClip(); }
   else if (e.key === "ArrowRight") next();
   else if (e.key === "ArrowLeft") prev();
   else if (e.key.toLowerCase() === "f") flip();

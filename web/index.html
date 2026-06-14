@@ -33,8 +33,11 @@
   <main>
     <section id="card" class="card hidden">
       <div class="front">
-        <button id="play" class="play">▶ Play</button>
-        <p class="hint">Listen, then flip</p>
+        <video id="player" class="player" playsinline controls></video>
+        <div class="front-row">
+          <button id="play" class="play">▶ Replay</button>
+          <span class="hint">Watch, then flip</span>
+        </div>
       </div>
       <div id="back" class="back hidden">
         <div id="hanzi" class="hanzi"></div>

@@ -138,6 +138,22 @@ button:hover {
   color: #fff;
 }
 
+.player {
+  width: 100%;
+  max-height: 52vh;
+  border-radius: 10px;
+  background: #000;
+  display: block;
+}
+
+.front-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
 footer {
   display: flex;
   gap: 0.6rem;
