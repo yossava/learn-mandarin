@@ -9,8 +9,21 @@
 <body>
   <header>
     <h1>Mandarin Flashcards</h1>
+
+    <form id="add" class="add hidden">
+      <input id="url" type="url" placeholder="Paste a Mandarin YouTube URL" autocomplete="off">
+      <button type="submit" id="addbtn">Add lesson</button>
+    </form>
+
+    <div id="job" class="job hidden">
+      <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+      <span id="job-msg" class="job-msg"></span>
+    </div>
+
     <div class="controls">
-      <select id="deck"></select>
+      <label class="deck-label">Lesson
+        <select id="deck"></select>
+      </label>
       <button id="shuffle">Shuffle</button>
       <span id="progress"></span>
     </div>

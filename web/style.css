@@ -168,3 +168,77 @@ footer {
 .hidden {
   display: none;
 }
+
+/* add-lesson form + job progress */
+.add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.add input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #2c2f36;
+  border-radius: 8px;
+  background: #14161a;
+  color: var(--fg);
+  font: inherit;
+}
+
+.add input::placeholder {
+  color: #6b7178;
+}
+
+.job {
+  margin-bottom: 0.6rem;
+}
+
+.bar {
+  height: 6px;
+  background: #2c2f36;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.bar-fill.error {
+  background: var(--red);
+}
+
+.job-msg {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.deck-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+select {
+  font: inherit;
+  background: #14161a;
+  color: var(--fg);
+  border: 1px solid #2c2f36;
+  border-radius: 6px;
+  padding: 0.3rem 0.4rem;
+  max-width: 60vw;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
