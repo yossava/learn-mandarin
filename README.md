@@ -5,7 +5,7 @@ Turn Mandarin YouTube videos into per-sentence audio flashcards.
 Give it a YouTube URL and it downloads the audio, transcribes it with Whisper, splits the
 transcript into sentences, cuts an MP3 clip for each one, and adds pinyin, an English
 translation and a word-by-word breakdown. The result is a JSON deck plus an audio folder
-you can study in the bundled web app.
+you study in the bundled web app — where you can also paste new URLs and watch them process.
 
 ## How it works
 
@@ -37,7 +37,29 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Usage
+## Web app
+
+Run everything from the browser — add lessons, watch them process, and study:
+
+```sh
+python -m mandarin.server
+```
+
+Open <http://localhost:8000/web/>, paste a Mandarin YouTube URL, and click **Add lesson**.
+A progress bar tracks the six stages; when it finishes the new lesson appears in the picker.
+Studying:
+
+- `Space` — play audio
+- `←` / `→` — previous / next card
+- `F` — flip
+- `1` / `2` — mark again / known
+
+Progress is stored in the browser. Use a video that is **spoken in Mandarin** — an
+English-narrated lesson is transcribed as English.
+
+## Command line
+
+You can also process a video without the server:
 
 ```sh
 python -m mandarin.run "https://www.youtube.com/watch?v=..."
@@ -49,12 +71,9 @@ Output is written to `data/<video_id>/`:
 - `sentences/0001.mp3 …` — one clip per sentence
 - `cards.json` — the deck (see below)
 
-Use a video that is **spoken in Mandarin** — an English-narrated lesson is transcribed as
-English.
+## Configuration
 
-### Configuration
-
-Override any default with an environment variable:
+Override any default with an environment variable (applies to both the server and the CLI):
 
 | Variable | Default | Description |
 | --- | --- | --- |
@@ -72,10 +91,10 @@ Silicon faster-whisper runs on CPU, so `large-v3` is the most accurate but slow 
 is handy while trying things out:
 
 ```sh
-WHISPER_MODEL=small python -m mandarin.run "https://www.youtube.com/watch?v=..."
+WHISPER_MODEL=small python -m mandarin.server
 ```
 
-### Card format
+## Card format
 
 ```json
 {
@@ -92,25 +111,10 @@ WHISPER_MODEL=small python -m mandarin.run "https://www.youtube.com/watch?v=..."
 }
 ```
 
-## Study
-
-```sh
-python -m http.server 8000
-```
-
-Open <http://localhost:8000/web/> and pick a deck.
-
-- `Space` — play audio
-- `←` / `→` — previous / next card
-- `F` — flip
-- `1` / `2` — mark again / known
-
-Progress is stored in the browser.
-
 ## Layout
 
 ```
-mandarin/   pipeline package, one module per stage
+mandarin/   pipeline package, one module per stage, plus the web server
 web/        static flashcard app
 data/       generated audio and decks (gitignored)
 ```
