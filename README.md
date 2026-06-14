@@ -11,10 +11,10 @@ you study in the bundled web app — where you can also paste new URLs and watch
 
 The run is a six-stage pipeline (`mandarin/run.py`):
 
-1. **download** — pull the audio as mp3 with yt-dlp
+1. **download** — fetch the video with audio via yt-dlp (capped at 480p)
 2. **transcribe** — faster-whisper, with word-level timestamps
 3. **segment** — group words into sentences on punctuation and pauses
-4. **slice** — cut one mp3 per sentence with ffmpeg
+4. **slice** — cut one audio clip (mp3) and one video clip (mp4) per sentence with ffmpeg
 5. **enrich** — pinyin, translation and word breakdown via the `claude` CLI
 6. **cards** — write `cards.json` and update the deck index
 
@@ -66,8 +66,8 @@ python3 -m mandarin.run "https://www.youtube.com/watch?v=..."
 
 Output is written to `data/<video_id>/`:
 
-- `audio.mp3` — extracted audio
-- `sentences/0001.mp3 …` — one clip per sentence
+- `video.mp4` / `audio.mp3` — the downloaded video and its extracted audio
+- `sentences/0001.mp3` + `sentences/0001.mp4` — audio and video clip per sentence
 - `cards.json` — the deck (see below)
 
 ## Configuration
@@ -84,6 +84,8 @@ Override any default with an environment variable (applies to both the server an
 | `CLIP_PAD` | `0.15` | Seconds of padding added to each side of a clip. |
 | `MAX_CHARS` | `50` | Force a sentence split after this many characters. |
 | `MAX_GAP` | `1.0` | A silence longer than this (seconds) ends a sentence. |
+| `WITH_VIDEO` | `1` | Set to `0` to skip video and produce audio-only clips. |
+| `VIDEO_HEIGHT` | `480` | Max height (px) for the downloaded video and clips. |
 
 The first run downloads the Whisper model (`large-v3` is ~3 GB, `small` ~0.5 GB). On Apple
 Silicon faster-whisper runs on CPU, so `large-v3` is the most accurate but slow — `small`
@@ -99,6 +101,7 @@ WHISPER_MODEL=small python3 -m mandarin.server
 {
   "id": 1,
   "audio": "sentences/0001.mp3",
+  "video": "sentences/0001.mp4",
   "chinese": "大橘想吃披萨,叮咚,门铃响了。",
   "pinyin": "Dà jú xiǎng chī pīsà, dīng dōng, mén líng xiǎng le.",
   "translation": "Big Orange wants to eat pizza — ding-dong, the doorbell rings.",

@@ -3,10 +3,10 @@
 import argparse
 
 from .cards import build_cards
-from .download import download_audio
+from .download import download_media
 from .enrich import enrich
 from .segment import to_sentences
-from .slice_audio import slice_all
+from .slice_media import slice_all
 from .transcribe import transcribe
 
 STAGES = 6
@@ -23,8 +23,8 @@ def process(url, on_progress=None):
         if on_progress:
             on_progress(step, STAGES, message, frac, detail)
 
-    report(1, "Downloading audio")
-    audio_path, meta = download_audio(url)
+    report(1, "Downloading video")
+    audio_path, video_path, meta = download_media(url)
     out_dir = audio_path.parent
 
     report(2, "Transcribing")
@@ -39,7 +39,10 @@ def process(url, on_progress=None):
     sentences = to_sentences(segments, audio_duration=meta.get("duration"))
 
     report(4, f"Slicing {len(sentences)} clips")
-    clip_names = slice_all(audio_path, sentences, out_dir / "sentences")
+    clip_names = slice_all(
+        audio_path, video_path, sentences, out_dir / "sentences",
+        on_progress=lambda f: report(4, f"Slicing {len(sentences)} clips", f),
+    )
 
     report(5, "Enriching")
     enriched = enrich(
@@ -48,7 +51,9 @@ def process(url, on_progress=None):
     )
 
     report(6, "Writing cards")
-    cards_path = build_cards(meta, sentences, clip_names, enriched, out_dir)
+    cards_path = build_cards(
+        meta, sentences, clip_names, enriched, out_dir, has_video=video_path is not None
+    )
 
     return {
         "video_id": meta["video_id"],

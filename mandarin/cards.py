@@ -6,28 +6,29 @@ from pathlib import Path
 from .config import DATA_DIR
 
 
-def build_cards(meta, sentences, clip_names, enriched, out_dir: Path) -> Path:
+def build_cards(meta, sentences, clip_names, enriched, out_dir: Path, has_video=False) -> Path:
     cards = []
-    for i, (s, name, e) in enumerate(zip(sentences, clip_names, enriched), 1):
-        cards.append(
-            {
-                "id": i,
-                "audio": f"sentences/{name}",
-                "chinese": s["text"],
-                "pinyin": e.get("pinyin", ""),
-                "translation": e.get("translation", ""),
-                "words": e.get("words", []),
-                "note": e.get("note", ""),
-                "start": round(s["start"], 3),
-                "end": round(s["end"], 3),
-                "source": {
-                    "title": meta.get("title"),
-                    "video_id": meta.get("video_id"),
-                    "url": meta.get("url"),
-                    "channel": meta.get("channel"),
-                },
-            }
-        )
+    for i, (s, base, e) in enumerate(zip(sentences, clip_names, enriched), 1):
+        card = {
+            "id": i,
+            "audio": f"sentences/{base}.mp3",
+            "chinese": s["text"],
+            "pinyin": e.get("pinyin", ""),
+            "translation": e.get("translation", ""),
+            "words": e.get("words", []),
+            "note": e.get("note", ""),
+            "start": round(s["start"], 3),
+            "end": round(s["end"], 3),
+            "source": {
+                "title": meta.get("title"),
+                "video_id": meta.get("video_id"),
+                "url": meta.get("url"),
+                "channel": meta.get("channel"),
+            },
+        }
+        if has_video:
+            card["video"] = f"sentences/{base}.mp4"
+        cards.append(card)
 
     cards_path = out_dir / "cards.json"
     cards_path.write_text(json.dumps(cards, ensure_ascii=False, indent=2))
