@@ -6,10 +6,16 @@ import yt_dlp
 
 from .config import DATA_DIR
 
+# yt-dlp needs a JS runtime (deno) plus its EJS solver scripts to pass YouTube's
+# signature challenges; this opt lets it fetch those solver components.
+REMOTE_COMPONENTS = ["ejs:github"]
+
 
 def download_audio(url: str) -> tuple[Path, dict]:
     """Return (path to audio.mp3, metadata). Skips the download if it already exists."""
-    with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True}) as ydl:
+    with yt_dlp.YoutubeDL(
+        {"quiet": True, "skip_download": True, "remote_components": REMOTE_COMPONENTS}
+    ) as ydl:
         info = ydl.extract_info(url, download=False)
 
     video_id = info["id"]
@@ -28,6 +34,7 @@ def download_audio(url: str) -> tuple[Path, dict]:
                     "preferredquality": "0",
                 }
             ],
+            "remote_components": REMOTE_COMPONENTS,
             "quiet": True,
             "no_warnings": True,
         }

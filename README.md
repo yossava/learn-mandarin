@@ -25,9 +25,8 @@ already done.
 
 - Python 3.13
 - ffmpeg (`brew install ffmpeg`)
+- deno (`brew install deno`) — yt-dlp uses it to solve YouTube's JavaScript challenges
 - The [`claude`](https://docs.claude.com/en/docs/claude-code) CLI, logged in — used for enrichment (no API key needed)
-
-Optional: install `deno` so yt-dlp has a JavaScript runtime for YouTube extraction.
 
 ## Setup
 
