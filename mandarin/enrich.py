@@ -3,6 +3,7 @@
 import hashlib
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 
 from pypinyin import Style, pinyin
@@ -68,15 +69,21 @@ def _call_claude(texts: list[str]) -> list[dict] | None:
     payload = json.dumps(
         [{"index": i, "chinese": t} for i, t in enumerate(texts)], ensure_ascii=False
     )
+    # Keep each call lean: no MCP servers and no project/CLAUDE.md context, run from a
+    # temp dir. Otherwise every call reloads the whole environment and crawls.
     cmd = [
         "claude", "-p",
         "--model", CLAUDE_MODEL,
         "--output-format", "json",
         "--no-session-persistence",
+        "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
+        "--setting-sources", "",
         "--json-schema", json.dumps(SCHEMA),
         PROMPT.format(payload=payload),
     ]
-    proc = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    proc = subprocess.run(
+        cmd, check=True, capture_output=True, text=True, cwd=tempfile.gettempdir()
+    )
     outer = json.loads(proc.stdout)
     if outer.get("is_error"):
         raise RuntimeError(outer.get("result", "claude returned an error"))
