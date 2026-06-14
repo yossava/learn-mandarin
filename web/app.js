@@ -40,7 +40,7 @@ async function loadDecks(selectId) {
     $("#empty").classList.remove("hidden");
     $("#empty").textContent = apiMode
       ? "No lessons yet — paste a YouTube URL above to add one."
-      : "No decks yet. Run: python -m mandarin.run <youtube-url>";
+      : "No decks yet. Run: python3 -m mandarin.run <youtube-url>";
     return;
   }
   for (const d of decks) {

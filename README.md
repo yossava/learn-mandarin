@@ -41,7 +41,7 @@ pip install -r requirements.txt
 Run everything from the browser — add lessons, watch them process, and study:
 
 ```sh
-python -m mandarin.server
+python3 -m mandarin.server
 ```
 
 Open <http://localhost:8000/web/>, paste a Mandarin YouTube URL, and click **Add lesson**.
@@ -61,7 +61,7 @@ English-narrated lesson is transcribed as English.
 You can also process a video without the server:
 
 ```sh
-python -m mandarin.run "https://www.youtube.com/watch?v=..."
+python3 -m mandarin.run "https://www.youtube.com/watch?v=..."
 ```
 
 Output is written to `data/<video_id>/`:
@@ -90,7 +90,7 @@ Silicon faster-whisper runs on CPU, so `large-v3` is the most accurate but slow 
 is handy while trying things out:
 
 ```sh
-WHISPER_MODEL=small python -m mandarin.server
+WHISPER_MODEL=small python3 -m mandarin.server
 ```
 
 ## Card format
