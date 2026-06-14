@@ -27,7 +27,12 @@ def process(url, on_progress=None):
     out_dir = audio_path.parent
 
     report(2, "Transcribing")
-    segments = transcribe(audio_path, on_progress=lambda f: report(2, "Transcribing", f))
+    segments = transcribe(
+        audio_path,
+        on_progress=lambda frac, segs, words: report(
+            2, f"Transcribing · {segs} sentences · {words} words", frac
+        ),
+    )
 
     report(3, "Splitting into sentences")
     sentences = to_sentences(segments, audio_duration=meta.get("duration"))

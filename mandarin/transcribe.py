@@ -22,7 +22,8 @@ def _get_model() -> WhisperModel:
 def transcribe(audio_path: Path, on_progress=None) -> list[dict]:
     """Return a list of segments with word timestamps, caching to transcript.json.
 
-    on_progress, if given, is called with a 0..1 fraction as transcription proceeds.
+    on_progress, if given, is called as (fraction, segment_count, word_count) as
+    transcription proceeds; fraction is None when the audio duration is unknown.
     """
     out = audio_path.parent / "transcript.json"
     if out.exists():
@@ -37,16 +38,19 @@ def transcribe(audio_path: Path, on_progress=None) -> list[dict]:
     duration = info.duration or 0
 
     result = []
+    word_count = 0
     for seg in segments:
         words = [
             {"word": w.word, "start": w.start, "end": w.end}
             for w in (seg.words or [])
         ]
+        word_count += len(words)
         result.append(
             {"start": seg.start, "end": seg.end, "text": seg.text, "words": words}
         )
-        if on_progress and duration:
-            on_progress(min(1.0, seg.end / duration))
+        if on_progress:
+            frac = min(1.0, seg.end / duration) if duration else None
+            on_progress(frac, len(result), word_count)
 
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2))
     return result
