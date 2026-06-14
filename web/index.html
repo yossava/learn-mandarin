@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mandarin Flashcards</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Mandarin Flashcards</h1>
+    <div class="controls">
+      <select id="deck"></select>
+      <button id="shuffle">Shuffle</button>
+      <span id="progress"></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="card" class="card hidden">
+      <div class="front">
+        <button id="play" class="play">▶ Play</button>
+        <p class="hint">Listen, then flip</p>
+      </div>
+      <div id="back" class="back hidden">
+        <div id="hanzi" class="hanzi"></div>
+        <div id="pinyin" class="pinyin"></div>
+        <div id="translation" class="translation"></div>
+        <table id="words" class="words"></table>
+        <div id="note" class="note"></div>
+      </div>
+    </section>
+    <div id="empty" class="empty">Loading…</div>
+  </main>
+
+  <footer>
+    <button id="flip">Flip</button>
+    <button id="again" class="again">Again</button>
+    <button id="known" class="known">Known</button>
+    <div class="keys">Space play · ←/→ prev/next · F flip · 1 again · 2 known</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
