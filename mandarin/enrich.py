@@ -100,8 +100,11 @@ def _call_claude(texts: list[str]) -> list[dict] | None:
     return items
 
 
-def enrich(sentences: list[dict], cache_path: Path) -> list[dict]:
-    """Enrich every sentence, caching by text hash so reruns skip finished work."""
+def enrich(sentences: list[dict], cache_path: Path, on_progress=None) -> list[dict]:
+    """Enrich every sentence, caching by text hash so reruns skip finished work.
+
+    on_progress, if given, is called with a 0..1 fraction after each batch.
+    """
     cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
 
     todo = [s for s in sentences if _key(s["text"]) not in cache]
@@ -118,5 +121,9 @@ def enrich(sentences: list[dict], cache_path: Path) -> list[dict]:
         for s, item in zip(batch, items):
             cache[_key(s["text"])] = item
         cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=2))
+        if on_progress and todo:
+            on_progress(min(1.0, (i + len(batch)) / len(todo)))
 
+    if on_progress:
+        on_progress(1.0)
     return [cache[_key(s["text"])] for s in sentences]
