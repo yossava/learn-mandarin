@@ -15,12 +15,13 @@ STAGES = 6
 def process(url, on_progress=None):
     """Run every stage for one video. Returns a summary dict.
 
-    on_progress(step, total, message, frac) is called as work proceeds; `frac` is a
-    0..1 fraction within the current step where available, otherwise None.
+    on_progress(step, total, message, frac, detail) is called as work proceeds; `frac` is a
+    0..1 fraction within the current step where available, otherwise None, and `detail` is
+    optional extra text (e.g. the latest transcribed line).
     """
-    def report(step, message, frac=None):
+    def report(step, message, frac=None, detail=None):
         if on_progress:
-            on_progress(step, STAGES, message, frac)
+            on_progress(step, STAGES, message, frac, detail)
 
     report(1, "Downloading audio")
     audio_path, meta = download_audio(url)
@@ -29,8 +30,8 @@ def process(url, on_progress=None):
     report(2, "Transcribing")
     segments = transcribe(
         audio_path,
-        on_progress=lambda frac, segs, words: report(
-            2, f"Transcribing · {segs} sentences · {words} words", frac
+        on_progress=lambda frac, segs, words, text: report(
+            2, f"Transcribing · {segs} sentences · {words} words", frac, text
         ),
     )
 
@@ -66,7 +67,7 @@ def main() -> None:
 
     last = {"step": 0}
 
-    def prog(step, total, message, frac):
+    def prog(step, total, message, frac, detail=None):
         if step != last["step"]:
             print(f"[{step}/{total}] {message}...")
             last["step"] = step

@@ -124,6 +124,7 @@ function setJob(show, frac, msg, isError) {
   $("#bar-fill").style.width = `${Math.round((frac || 0) * 100)}%`;
   $("#bar-fill").classList.toggle("error", !!isError);
   $("#job-msg").textContent = msg || "";
+  if (!show) $("#job-preview").textContent = "";
 }
 
 async function addLesson(event) {
@@ -161,6 +162,7 @@ function pollJob(id) {
 
     if (job.status === "done") {
       setJob(true, 1, `Added ${job.count} cards`);
+      $("#job-preview").textContent = "";
       $("#url").value = "";
       $("#addbtn").disabled = false;
       loadDecks(job.deck_id);
@@ -169,10 +171,12 @@ function pollJob(id) {
     }
     if (job.status === "error") {
       setJob(true, Math.max(0.05, overall), `Error: ${job.message}`, true);
+      $("#job-preview").textContent = "";
       $("#addbtn").disabled = false;
       return;
     }
     setJob(true, Math.max(0.02, overall), `${job.message}${steps}`);
+    $("#job-preview").textContent = job.preview || "";
     setTimeout(tick, 1200);
   };
   tick();

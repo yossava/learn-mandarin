@@ -3,7 +3,7 @@
 Endpoints:
   GET  /api/decks        -> list of decks (data/decks.json)
   POST /api/jobs {url}    -> queue a video, returns {id}
-  GET  /api/jobs/<id>     -> job status {status, step, total, message, frac, ...}
+  GET  /api/jobs/<id>     -> job status {status, step, total, message, frac, preview, ...}
 Everything else is served as a static file from the project root.
 """
 
@@ -34,12 +34,15 @@ def _worker():
         url = _jobs[job_id]["url"]
         _update(job_id, status="running", message="Starting")
         try:
-            def on_progress(step, total, message, frac):
-                _update(job_id, step=step, total=total, message=message, frac=frac)
+            def on_progress(step, total, message, frac, detail=None):
+                _update(
+                    job_id, step=step, total=total, message=message,
+                    frac=frac, preview=detail,
+                )
 
             result = process(url, on_progress)
             _update(
-                job_id, status="done", message="Done",
+                job_id, status="done", message="Done", preview=None,
                 deck_id=result["video_id"], title=result["title"], count=result["count"],
             )
         except Exception as exc:  # surface the failure to the browser
@@ -90,6 +93,7 @@ class Handler(SimpleHTTPRequestHandler):
             _jobs[job_id] = {
                 "id": job_id, "url": url, "status": "queued",
                 "step": 0, "total": STAGES, "message": "Queued", "frac": None,
+                "preview": None,
             }
         _work.put(job_id)
         return self._send_json({"id": job_id})
