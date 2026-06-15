@@ -25,7 +25,7 @@
       <label class="deck-label">Lesson
         <select id="deck"></select>
       </label>
-      <button id="delete" class="delete hidden">Delete</button>
+      <button id="delete" class="delete hidden">Delete lesson</button>
       <button id="shuffle">Shuffle</button>
       <span id="progress"></span>
     </div>
@@ -37,10 +37,10 @@
         <video id="player" class="player" playsinline controls></video>
         <div class="front-row">
           <button id="play" class="play">▶ Replay</button>
-          <span class="hint">Watch, then flip</span>
+          <span class="hint">F to hide / show the answer</span>
         </div>
       </div>
-      <div id="back" class="back hidden">
+      <div id="back" class="back">
         <div id="hanzi" class="hanzi"></div>
         <div id="pinyin" class="pinyin"></div>
         <div id="translation" class="translation"></div>
@@ -55,6 +55,7 @@
     <button id="flip">Flip</button>
     <button id="again" class="again">Again</button>
     <button id="known" class="known">Known</button>
+    <button id="delcard" class="delete hidden">Delete card</button>
     <div class="keys">Space play · ←/→ prev/next · F flip · 1 again · 2 known</div>
   </footer>
 

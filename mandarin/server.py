@@ -1,10 +1,11 @@
 """A small web server: serve the flashcard app and run the pipeline from the browser.
 
 Endpoints:
-  GET    /api/decks       -> list of decks (data/decks.json)
-  DELETE /api/decks/<id>  -> remove a deck's files and index entry
-  POST   /api/jobs {url}  -> queue a video, returns {id}
-  GET    /api/jobs/<id>   -> job status {status, step, total, message, frac, preview, ...}
+  GET    /api/decks                  -> list of decks (data/decks.json)
+  DELETE /api/decks/<id>             -> remove a deck's files and index entry
+  DELETE /api/decks/<id>/cards/<n>   -> remove one card and its clips
+  POST   /api/jobs {url}             -> queue a video, returns {id}
+  GET    /api/jobs/<id>              -> job status {status, step, total, message, frac, ...}
 Everything else is served as a static file from the project root.
 """
 
@@ -31,22 +32,56 @@ def _update(job_id, **fields):
         _jobs[job_id].update(fields)
 
 
+def _safe_id(video_id: str) -> bool:
+    return bool(video_id) and "/" not in video_id and "\\" not in video_id and not video_id.startswith(".")
+
+
 def _delete_deck(video_id: str) -> bool:
     """Remove a deck's data directory and its decks.json entry. Guards against
     path traversal — only a plain directory directly under DATA_DIR is removed."""
-    if not video_id or "/" in video_id or "\\" in video_id or video_id.startswith("."):
+    if not _safe_id(video_id):
         return False
-    target = DATA_DIR / video_id
-    try:
-        target.relative_to(DATA_DIR)
-    except ValueError:
-        return False
-    shutil.rmtree(target, ignore_errors=True)
+    shutil.rmtree(DATA_DIR / video_id, ignore_errors=True)
     index_path = DATA_DIR / "decks.json"
     if index_path.exists():
         decks = [d for d in json.loads(index_path.read_text()) if d["id"] != video_id]
         index_path.write_text(json.dumps(decks, ensure_ascii=False, indent=2))
     return True
+
+
+def _delete_card(video_id: str, card_id: int) -> dict:
+    """Remove a single card from a deck and delete its clip files."""
+    if not _safe_id(video_id):
+        return {"ok": False}
+    deck_dir = DATA_DIR / video_id
+    cards_path = deck_dir / "cards.json"
+    if not cards_path.exists():
+        return {"ok": False}
+
+    cards = json.loads(cards_path.read_text())
+    removed = [c for c in cards if c.get("id") == card_id]
+    cards = [c for c in cards if c.get("id") != card_id]
+    for card in removed:
+        for key in ("audio", "video"):
+            rel = card.get(key)
+            if not rel:
+                continue
+            clip = deck_dir / rel
+            try:
+                clip.relative_to(deck_dir)
+                clip.unlink(missing_ok=True)
+            except ValueError:
+                pass
+    cards_path.write_text(json.dumps(cards, ensure_ascii=False, indent=2))
+
+    index_path = DATA_DIR / "decks.json"
+    if index_path.exists():
+        decks = json.loads(index_path.read_text())
+        for d in decks:
+            if d["id"] == video_id:
+                d["count"] = len(cards)
+        index_path.write_text(json.dumps(decks, ensure_ascii=False, indent=2))
+    return {"ok": True, "count": len(cards)}
 
 
 def _worker():
@@ -120,11 +155,19 @@ class Handler(SimpleHTTPRequestHandler):
         return self._send_json({"id": job_id})
 
     def do_DELETE(self):
-        if self.path.startswith("/api/decks/"):
-            video_id = unquote(self.path[len("/api/decks/"):]).strip("/")
-            ok = _delete_deck(video_id)
-            return self._send_json({"ok": ok}, 200 if ok else 400)
-        return self._send_json({"error": "not found"}, 404)
+        if not self.path.startswith("/api/decks/"):
+            return self._send_json({"error": "not found"}, 404)
+        rest = self.path[len("/api/decks/"):]
+        if "/cards/" in rest:
+            deck_part, _, card_part = rest.partition("/cards/")
+            try:
+                card_id = int(card_part.strip("/"))
+            except ValueError:
+                return self._send_json({"error": "bad card id"}, 400)
+            result = _delete_card(unquote(deck_part), card_id)
+            return self._send_json(result, 200 if result.get("ok") else 400)
+        ok = _delete_deck(unquote(rest).strip("/"))
+        return self._send_json({"ok": ok}, 200 if ok else 400)
 
     def log_message(self, *args):  # keep the console quiet
         pass

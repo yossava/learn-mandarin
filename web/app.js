@@ -81,6 +81,28 @@ async function deleteLesson() {
   }
 }
 
+async function deleteCard() {
+  const card = current();
+  if (!card) return;
+  if (!confirm(`Delete this card?\n\n${card.chinese}`)) return;
+  try {
+    const res = await fetch(
+      `/api/decks/${encodeURIComponent(deckId)}/cards/${card.id}`,
+      { method: "DELETE" }
+    );
+    if (!res.ok) throw new Error("request failed");
+    cards = cards.filter((c) => c.id !== card.id);
+    const opt = [...$("#deck").options].find((o) => o.value === deckId);
+    if (opt) opt.textContent = opt.textContent.replace(/\(\d+\)\s*$/, `(${cards.length})`);
+    if (!cards.length) { loadDecks(); return; }
+    order = [...cards.keys()].sort((a, b) => box(cards[a].id) - box(cards[b].id));
+    if (pos >= order.length) pos = 0;
+    render();
+  } catch (err) {
+    alert(`Could not delete card: ${err.message}`);
+  }
+}
+
 // ---------- study ----------
 function shuffle() {
   for (let i = order.length - 1; i > 0; i--) {
@@ -97,7 +119,7 @@ function render() {
   const card = current();
   $("#empty").classList.add("hidden");
   $("#card").classList.remove("hidden");
-  $("#back").classList.add("hidden");
+  $("#back").classList.remove("hidden"); // answer shown by default; F hides it
   if (!card) return;
 
   const player = $("#player");
@@ -207,6 +229,7 @@ $("#again").onclick = () => grade(false);
 $("#known").onclick = () => grade(true);
 $("#shuffle").onclick = shuffle;
 $("#delete").onclick = deleteLesson;
+$("#delcard").onclick = deleteCard;
 $("#add").addEventListener("submit", addLesson);
 
 document.addEventListener("keydown", (e) => {
@@ -229,6 +252,7 @@ async function init() {
   if (apiMode) {
     $("#add").classList.remove("hidden");
     $("#delete").classList.remove("hidden");
+    $("#delcard").classList.remove("hidden");
   }
   loadDecks();
 }
