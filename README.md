@@ -46,7 +46,7 @@ python3 -m mandarin.server
 
 Open <http://localhost:8000/web/>, paste a Mandarin YouTube URL, and click **Add lesson**.
 A progress bar tracks the six stages; when it finishes the new lesson appears in the picker.
-Studying:
+**Delete** removes the selected lesson and all its files. Studying:
 
 - `Space` — play audio
 - `←` / `→` — previous / next card

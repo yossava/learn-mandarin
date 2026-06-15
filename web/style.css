@@ -171,6 +171,17 @@ footer {
   color: #fff;
 }
 
+.delete {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid #3a3d44;
+}
+
+.delete:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+
 .keys {
   margin-left: auto;
   color: var(--muted);

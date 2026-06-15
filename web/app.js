@@ -35,6 +35,7 @@ async function loadDecks(selectId) {
   const sel = $("#deck");
   sel.innerHTML = "";
   if (!decks.length) {
+    deckId = null;
     $("#card").classList.add("hidden");
     $("#empty").classList.remove("hidden");
     $("#empty").textContent = apiMode
@@ -62,6 +63,22 @@ async function loadDeck(id) {
   order = [...cards.keys()].sort((a, b) => box(cards[a].id) - box(cards[b].id));
   pos = 0;
   render();
+}
+
+async function deleteLesson() {
+  if (!deckId) return;
+  const sel = $("#deck");
+  const label = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : deckId;
+  if (!confirm(`Delete "${label}"? This removes its audio, video and cards.`)) return;
+  const removed = deckId;
+  try {
+    const res = await fetch(`/api/decks/${encodeURIComponent(removed)}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("request failed");
+    localStorage.removeItem(`srs:${removed}`);
+    await loadDecks();
+  } catch (err) {
+    alert(`Could not delete: ${err.message}`);
+  }
 }
 
 // ---------- study ----------
@@ -189,6 +206,7 @@ $("#flip").onclick = flip;
 $("#again").onclick = () => grade(false);
 $("#known").onclick = () => grade(true);
 $("#shuffle").onclick = shuffle;
+$("#delete").onclick = deleteLesson;
 $("#add").addEventListener("submit", addLesson);
 
 document.addEventListener("keydown", (e) => {
@@ -208,7 +226,10 @@ async function init() {
   } catch {
     apiMode = false;
   }
-  if (apiMode) $("#add").classList.remove("hidden");
+  if (apiMode) {
+    $("#add").classList.remove("hidden");
+    $("#delete").classList.remove("hidden");
+  }
   loadDecks();
 }
 
