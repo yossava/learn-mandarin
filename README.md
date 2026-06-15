@@ -12,7 +12,7 @@ you study in the bundled web app — where you can also paste new URLs and watch
 The run is a six-stage pipeline (`mandarin/run.py`):
 
 1. **download** — fetch the video with audio via yt-dlp (capped at 480p)
-2. **transcribe** — faster-whisper, with word-level timestamps
+2. **transcribe** — Whisper with word-level timestamps (Apple-Silicon GPU via mlx-whisper when installed, otherwise faster-whisper on CPU)
 3. **map & enrich** — the `claude` CLI groups the Mandarin words into natural sentences and adds pinyin, translation and a word breakdown in one pass (English is dropped)
 4. **slice** — cut one video clip (mp4, with sound) per sentence with ffmpeg
 5. **cards** — write `cards.json` and update the deck index
@@ -26,6 +26,7 @@ already done.
 - ffmpeg (`brew install ffmpeg`)
 - deno (`brew install deno`) — yt-dlp uses it to solve YouTube's JavaScript challenges
 - The [`claude`](https://docs.claude.com/en/docs/claude-code) CLI, logged in — used for enrichment (no API key needed)
+- On Apple Silicon, optionally `pip install mlx-whisper` — transcription then runs on the GPU (~6× faster, auto-selected)
 
 ## Setup
 
@@ -75,7 +76,9 @@ Override any default with an environment variable (applies to both the server an
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `WHISPER_MODEL` | `large-v3` | Whisper model. `medium` / `small` are faster and lighter. |
+| `WHISPER_BACKEND` | auto | `mlx` (Apple GPU) or `faster-whisper` (CPU); auto-picks MLX when installed. |
+| `WHISPER_MLX_MODEL` | `…large-v3-turbo` | MLX model repo used by the GPU backend. |
+| `WHISPER_MODEL` | `large-v3` | faster-whisper (CPU) model. `medium` / `small` are faster and lighter. |
 | `WHISPER_DEVICE` | `cpu` | faster-whisper device. |
 | `WHISPER_COMPUTE` | `int8` | Compute type. |
 | `CLAUDE_MODEL` | `sonnet` | Model used for enrichment. |
@@ -87,12 +90,13 @@ Override any default with an environment variable (applies to both the server an
 | `WITH_VIDEO` | `1` | Set to `0` to skip video and produce audio-only clips. |
 | `VIDEO_HEIGHT` | `480` | Max height (px) for the downloaded video and clips. |
 
-The first run downloads the Whisper model (`large-v3` is ~3 GB, `small` ~0.5 GB). On Apple
-Silicon faster-whisper runs on CPU, so `large-v3` is the most accurate but slow — `small`
-is handy while trying things out:
+On Apple Silicon, install `mlx-whisper` and transcription runs on the GPU (~6× faster than
+CPU), auto-selected. Without it, faster-whisper runs on CPU where `large-v3` is accurate but
+slow — use `WHISPER_MODEL=small` (or `medium`) to speed that up:
 
 ```sh
-WHISPER_MODEL=small python3 -m mandarin.server
+pip install mlx-whisper                           # Apple-Silicon GPU transcription
+WHISPER_MODEL=small python3 -m mandarin.server    # or speed up the CPU backend
 ```
 
 ## Card format

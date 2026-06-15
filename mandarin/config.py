@@ -6,10 +6,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", ROOT / "data"))
 
-# faster-whisper
-WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
+# Transcription
+WHISPER_BACKEND = os.environ.get("WHISPER_BACKEND", "")  # "" = auto (MLX on Apple Silicon, else faster-whisper)
+WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")   # faster-whisper (CPU) model
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE = os.environ.get("WHISPER_COMPUTE", "int8")
+WHISPER_MLX_MODEL = os.environ.get("WHISPER_MLX_MODEL", "mlx-community/whisper-large-v3-turbo")  # Apple GPU
 
 # Sentence segmentation
 CLIP_PAD = float(os.environ.get("CLIP_PAD", "0.15"))   # seconds added on each side of a clip
