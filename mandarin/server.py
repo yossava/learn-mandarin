@@ -1,19 +1,22 @@
 """A small web server: serve the flashcard app and run the pipeline from the browser.
 
 Endpoints:
-  GET  /api/decks        -> list of decks (data/decks.json)
-  POST /api/jobs {url}    -> queue a video, returns {id}
-  GET  /api/jobs/<id>     -> job status {status, step, total, message, frac, preview, ...}
+  GET    /api/decks       -> list of decks (data/decks.json)
+  DELETE /api/decks/<id>  -> remove a deck's files and index entry
+  POST   /api/jobs {url}  -> queue a video, returns {id}
+  GET    /api/jobs/<id>   -> job status {status, step, total, message, frac, preview, ...}
 Everything else is served as a static file from the project root.
 """
 
 import argparse
 import json
 import queue
+import shutil
 import threading
 import uuid
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import unquote
 
 from .config import DATA_DIR, ROOT
 from .run import STAGES, process
@@ -26,6 +29,24 @@ _work = queue.Queue()
 def _update(job_id, **fields):
     with _lock:
         _jobs[job_id].update(fields)
+
+
+def _delete_deck(video_id: str) -> bool:
+    """Remove a deck's data directory and its decks.json entry. Guards against
+    path traversal — only a plain directory directly under DATA_DIR is removed."""
+    if not video_id or "/" in video_id or "\\" in video_id or video_id.startswith("."):
+        return False
+    target = DATA_DIR / video_id
+    try:
+        target.relative_to(DATA_DIR)
+    except ValueError:
+        return False
+    shutil.rmtree(target, ignore_errors=True)
+    index_path = DATA_DIR / "decks.json"
+    if index_path.exists():
+        decks = [d for d in json.loads(index_path.read_text()) if d["id"] != video_id]
+        index_path.write_text(json.dumps(decks, ensure_ascii=False, indent=2))
+    return True
 
 
 def _worker():
@@ -97,6 +118,13 @@ class Handler(SimpleHTTPRequestHandler):
             }
         _work.put(job_id)
         return self._send_json({"id": job_id})
+
+    def do_DELETE(self):
+        if self.path.startswith("/api/decks/"):
+            video_id = unquote(self.path[len("/api/decks/"):]).strip("/")
+            ok = _delete_deck(video_id)
+            return self._send_json({"ok": ok}, 200 if ok else 400)
+        return self._send_json({"error": "not found"}, 404)
 
     def log_message(self, *args):  # keep the console quiet
         pass
