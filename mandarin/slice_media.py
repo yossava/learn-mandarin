@@ -21,9 +21,14 @@ def slice_audio(audio_path: Path, start: float, end: float, out_path: Path) -> N
 
 
 def slice_video(video_path: Path, start: float, end: float, out_path: Path) -> None:
+    # Two-stage seek: fast-seek to just before `start`, then trim the rest accurately.
+    # This is frame-accurate (so it stays in sync with the audio cut) and stays fast
+    # because only a couple of seconds are decoded per clip.
+    lead = min(start, 2.0)
     _run([
         "ffmpeg", "-nostdin", "-y",
-        "-ss", f"{start:.3f}", "-i", str(video_path), "-t", f"{end - start:.3f}",
+        "-ss", f"{start - lead:.3f}", "-i", str(video_path),
+        "-ss", f"{lead:.3f}", "-t", f"{end - start:.3f}",
         "-vf", f"scale=-2:'min({VIDEO_HEIGHT},ih)'",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
         "-c:a", "aac", "-movflags", "+faststart",
