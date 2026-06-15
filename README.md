@@ -13,10 +13,9 @@ The run is a six-stage pipeline (`mandarin/run.py`):
 
 1. **download** — fetch the video with audio via yt-dlp (capped at 480p)
 2. **transcribe** — faster-whisper, with word-level timestamps
-3. **segment** — group words into sentences on punctuation and pauses
-4. **slice** — cut one audio clip (mp3) and one video clip (mp4) per sentence with ffmpeg
-5. **enrich** — pinyin, translation and word breakdown via the `claude` CLI
-6. **cards** — write `cards.json` and update the deck index
+3. **map & enrich** — the `claude` CLI groups the Mandarin words into natural sentences and adds pinyin, translation and a word breakdown in one pass (English is dropped)
+4. **slice** — cut one video clip (mp4, with sound) per sentence with ffmpeg
+5. **cards** — write `cards.json` and update the deck index
 
 Each stage caches its output under `data/<video_id>/`, so re-running skips work that is
 already done.
@@ -67,7 +66,7 @@ python3 -m mandarin.run "https://www.youtube.com/watch?v=..."
 Output is written to `data/<video_id>/`:
 
 - `video.mp4` / `audio.mp3` — the downloaded video and its extracted audio
-- `sentences/0001.mp3` + `sentences/0001.mp4` — audio and video clip per sentence
+- `sentences/0001.mp4` — one clip (with sound) per sentence; `.mp3` instead when `WITH_VIDEO=0`
 - `cards.json` — the deck (see below)
 
 ## Configuration
@@ -101,7 +100,6 @@ WHISPER_MODEL=small python3 -m mandarin.server
 ```json
 {
   "id": 1,
-  "audio": "sentences/0001.mp3",
   "video": "sentences/0001.mp4",
   "chinese": "大橘想吃披萨,叮咚,门铃响了。",
   "pinyin": "Dà jú xiǎng chī pīsà, dīng dōng, mén líng xiǎng le.",

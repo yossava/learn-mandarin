@@ -2,14 +2,13 @@
 
 import argparse
 
+from .ai_segment import segment_and_enrich
 from .cards import build_cards
 from .download import download_media
-from .enrich import enrich
-from .segment import to_sentences
 from .slice_media import slice_all
 from .transcribe import transcribe
 
-STAGES = 6
+STAGES = 5
 
 
 def process(url, on_progress=None):
@@ -35,8 +34,12 @@ def process(url, on_progress=None):
         ),
     )
 
-    report(3, "Splitting into sentences")
-    sentences = to_sentences(segments, audio_duration=meta.get("duration"))
+    report(3, "Mapping & enriching sentences")
+    sentences = segment_and_enrich(
+        segments, out_dir / "segment_cache.json",
+        audio_duration=meta.get("duration"),
+        on_progress=lambda f: report(3, "Mapping & enriching sentences", f),
+    )
 
     report(4, f"Slicing {len(sentences)} clips")
     clip_names = slice_all(
@@ -44,15 +47,9 @@ def process(url, on_progress=None):
         on_progress=lambda f: report(4, f"Slicing {len(sentences)} clips", f),
     )
 
-    report(5, "Enriching")
-    enriched = enrich(
-        sentences, out_dir / "enrich_cache.json",
-        on_progress=lambda f: report(5, "Enriching", f),
-    )
-
-    report(6, "Writing cards")
+    report(5, "Writing cards")
     cards_path = build_cards(
-        meta, sentences, clip_names, enriched, out_dir, has_video=video_path is not None
+        meta, sentences, clip_names, out_dir, has_video=video_path is not None
     )
 
     return {
