@@ -89,6 +89,7 @@ Override any default with an environment variable (applies to both the server an
 | `MAX_GAP` | `1.0` | A silence longer than this (seconds) ends a sentence. |
 | `WITH_VIDEO` | `1` | Set to `0` to skip video and produce audio-only clips. |
 | `VIDEO_HEIGHT` | `480` | Max height (px) for the downloaded video and clips. |
+| `YT_COOKIES_BROWSER` | — | Read YouTube cookies from this browser (e.g. `chrome`) when YouTube asks to confirm you're not a bot. |
 
 On Apple Silicon, install `mlx-whisper` and transcription runs on the GPU (~6× faster than
 CPU), auto-selected. Without it, faster-whisper runs on CPU where `large-v3` is accurate but
@@ -97,6 +98,15 @@ slow — use `WHISPER_MODEL=small` (or `medium`) to speed that up:
 ```sh
 pip install mlx-whisper                           # Apple-Silicon GPU transcription
 WHISPER_MODEL=small python3 -m mandarin.server    # or speed up the CPU backend
+```
+
+## Troubleshooting
+
+If YouTube returns **"Sign in to confirm you're not a bot"**, pass cookies from a browser
+you're signed into YouTube on:
+
+```sh
+YT_COOKIES_BROWSER=chrome python3 -m mandarin.server
 ```
 
 ## Card format

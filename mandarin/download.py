@@ -5,12 +5,28 @@ from pathlib import Path
 
 import yt_dlp
 
-from .config import DATA_DIR, VIDEO_HEIGHT, WITH_VIDEO
+from .config import (
+    DATA_DIR,
+    VIDEO_HEIGHT,
+    WITH_VIDEO,
+    YT_COOKIES_BROWSER,
+    YT_COOKIES_FILE,
+)
 
 # yt-dlp needs a JS runtime (deno) plus its EJS solver scripts to pass YouTube's
 # signature challenges; this opt lets it fetch those solver components.
 REMOTE_COMPONENTS = ["ejs:github"]
 VIDEO_EXTS = {".mp4", ".mkv", ".webm", ".m4v", ".mov"}
+
+
+def _base_opts() -> dict:
+    """Common yt-dlp options, including cookies when configured."""
+    opts = {"remote_components": REMOTE_COMPONENTS, "quiet": True, "no_warnings": True}
+    if YT_COOKIES_BROWSER:
+        opts["cookiesfrombrowser"] = tuple(YT_COOKIES_BROWSER.split(":"))
+    elif YT_COOKIES_FILE:
+        opts["cookiefile"] = YT_COOKIES_FILE
+    return opts
 
 
 def _find_video(out_dir: Path):
@@ -27,9 +43,7 @@ def download_media(url: str):
     WITH_VIDEO off, only the audio is fetched and video_path is None. Existing files
     are reused.
     """
-    with yt_dlp.YoutubeDL(
-        {"quiet": True, "skip_download": True, "remote_components": REMOTE_COMPONENTS}
-    ) as ydl:
+    with yt_dlp.YoutubeDL({**_base_opts(), "skip_download": True}) as ydl:
         info = ydl.extract_info(url, download=False)
 
     video_id = info["id"]
@@ -40,12 +54,10 @@ def download_media(url: str):
 
     if WITH_VIDEO and video_path is None:
         opts = {
+            **_base_opts(),
             "format": f"bv*[height<={VIDEO_HEIGHT}]+ba/b[height<={VIDEO_HEIGHT}]/bv*+ba/b",
             "merge_output_format": "mp4",
             "outtmpl": str(out_dir / "video.%(ext)s"),
-            "remote_components": REMOTE_COMPONENTS,
-            "quiet": True,
-            "no_warnings": True,
         }
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download([url])
@@ -61,14 +73,12 @@ def download_media(url: str):
             )
         else:
             opts = {
+                **_base_opts(),
                 "format": "bestaudio/best",
                 "outtmpl": str(out_dir / "audio.%(ext)s"),
                 "postprocessors": [
                     {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "0"}
                 ],
-                "remote_components": REMOTE_COMPONENTS,
-                "quiet": True,
-                "no_warnings": True,
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([url])

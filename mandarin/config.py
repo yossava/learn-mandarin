@@ -26,3 +26,7 @@ ENRICH_WORKERS = int(os.environ.get("ENRICH_WORKERS", "5"))  # parallel claude c
 # Video clips
 WITH_VIDEO = os.environ.get("WITH_VIDEO", "1") != "0"   # set WITH_VIDEO=0 for audio only
 VIDEO_HEIGHT = int(os.environ.get("VIDEO_HEIGHT", "480"))  # downscale clips to this height
+
+# YouTube cookies — needed when YouTube asks to "confirm you're not a bot"
+YT_COOKIES_BROWSER = os.environ.get("YT_COOKIES_BROWSER", "")  # e.g. "chrome", "safari", "firefox"
+YT_COOKIES_FILE = os.environ.get("YT_COOKIES_FILE", "")        # path to a cookies.txt instead
