@@ -80,7 +80,8 @@ Override any default with an environment variable (applies to both the server an
 | `WHISPER_DEVICE` | `cpu` | faster-whisper device. |
 | `WHISPER_COMPUTE` | `int8` | Compute type. |
 | `CLAUDE_MODEL` | `sonnet` | Model used for enrichment. |
-| `ENRICH_BATCH` | `20` | Sentences sent to the `claude` CLI per call. |
+| `ENRICH_BATCH` | `6` | Sentences sent to the `claude` CLI per call. |
+| `ENRICH_WORKERS` | `5` | Enrichment calls to run in parallel (lower if rate-limited). |
 | `CLIP_PAD` | `0.15` | Seconds of padding added to each side of a clip. |
 | `MAX_CHARS` | `50` | Force a sentence split after this many characters. |
 | `MAX_GAP` | `1.0` | A silence longer than this (seconds) ends a sentence. |
