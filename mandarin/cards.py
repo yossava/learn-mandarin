@@ -6,17 +6,16 @@ from pathlib import Path
 from .config import DATA_DIR
 
 
-def build_cards(meta, sentences, clip_names, enriched, out_dir: Path, has_video=False) -> Path:
+def build_cards(meta, sentences, clip_names, out_dir: Path, has_video=False) -> Path:
     cards = []
-    for i, (s, base, e) in enumerate(zip(sentences, clip_names, enriched), 1):
+    for i, (s, base) in enumerate(zip(sentences, clip_names), 1):
         card = {
             "id": i,
-            "audio": f"sentences/{base}.mp3",
             "chinese": s["text"],
-            "pinyin": e.get("pinyin", ""),
-            "translation": e.get("translation", ""),
-            "words": e.get("words", []),
-            "note": e.get("note", ""),
+            "pinyin": s.get("pinyin", ""),
+            "translation": s.get("translation", ""),
+            "words": s.get("words", []),
+            "note": s.get("note", ""),
             "start": round(s["start"], 3),
             "end": round(s["end"], 3),
             "source": {
@@ -26,8 +25,11 @@ def build_cards(meta, sentences, clip_names, enriched, out_dir: Path, has_video=
                 "channel": meta.get("channel"),
             },
         }
+        # one clip per sentence: the mp4 carries sound, so mp3 is only used audio-only
         if has_video:
             card["video"] = f"sentences/{base}.mp4"
+        else:
+            card["audio"] = f"sentences/{base}.mp3"
         cards.append(card)
 
     cards_path = out_dir / "cards.json"

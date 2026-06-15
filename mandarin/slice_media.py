@@ -46,12 +46,16 @@ def slice_all(audio_path, video_path, sentences, out_dir: Path, on_progress=None
     total = len(sentences)
     for i, s in enumerate(sentences, 1):
         base = f"{i:04d}"
-        audio_out = out_dir / f"{base}.mp3"
-        video_out = out_dir / f"{base}.mp4"
-        if not audio_out.exists():
-            slice_audio(audio_path, s["start"], s["end"], audio_out)
-        if video_path is not None and not video_out.exists():
-            slice_video(video_path, s["start"], s["end"], video_out)
+        # the video clip carries its own audio, so only cut a separate mp3 when
+        # there is no video (audio-only mode)
+        if video_path is not None:
+            out = out_dir / f"{base}.mp4"
+            if not out.exists():
+                slice_video(video_path, s["start"], s["end"], out)
+        else:
+            out = out_dir / f"{base}.mp3"
+            if not out.exists():
+                slice_audio(audio_path, s["start"], s["end"], out)
         names.append(base)
         if on_progress and total:
             on_progress(i / total)
